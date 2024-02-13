@@ -1,0 +1,18 @@
+{
+    "name": "BeardPhantom.RuntimeTypeCache.Editor",
+    "rootNamespace": "BeardPhantom.RuntimeTypeCache.Editor",
+    "references": [
+        "GUID:c49a50998c47c2c4d92c7f805b2be40b"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

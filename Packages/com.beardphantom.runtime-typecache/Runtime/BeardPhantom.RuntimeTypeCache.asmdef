@@ -1,0 +1,14 @@
+{
+  "name": "BeardPhantom.RuntimeTypeCache",
+  "rootNamespace": "BeardPhantom.RuntimeTypeCache",
+  "references": [],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
