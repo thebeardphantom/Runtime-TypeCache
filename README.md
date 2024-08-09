@@ -2,6 +2,12 @@
 Extends Unity's UnityEditor.TypeCache class to support the editor and builds through a singular API.
 
 **It's important to note that Runtime TypeCache does not _bypass_ reflection. It simply caches specific paths to ensure that the minimal amount of reflection calls are ever needed.**
+## Installing 
+You can install Runtime TypeCache via the "Install package from git URL..." option in Unity's Package Manager using the following URL:
+```
+https://github.com/thebeardphantom/Runtime-TypeCache.git?path=Packages/com.beardphantom.runtime-typecache
+```
+
 ## What is it?
 The Runtime TypeCache system is designed to give you the same access to information that you get through Unity's editor-only TypeCache API:
 - `GetFieldsWithAttribute`
