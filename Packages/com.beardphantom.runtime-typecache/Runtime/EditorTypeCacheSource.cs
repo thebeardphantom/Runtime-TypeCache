@@ -7,12 +7,10 @@ using UnityEditor;
 namespace BeardPhantom.RuntimeTypeCache
 {
     /// <summary>
-    /// ITypeCacheSource that uses the standard <see cref="UnityEditor.TypeCache" /> API.
+    ///     ITypeCacheSource that uses the standard <see cref="UnityEditor.TypeCache" /> API.
     /// </summary>
     internal class EditorTypeCacheSource : ITypeCacheSource
     {
-        #region Methods
-
         /// <inheritdoc />
         public IEnumerable<Type> GetTypesDerivedFrom(Type parentType)
         {
@@ -34,22 +32,17 @@ namespace BeardPhantom.RuntimeTypeCache
         /// <inheritdoc />
         public IEnumerable<PropertyInfo> GetPropertiesWithAttribute(Type attributeType)
         {
-            const BindingFlags ALL_PROPERTIES = BindingFlags.Public
-                | BindingFlags.Instance
-                | BindingFlags.NonPublic
-                | BindingFlags.Static;
-            
-            foreach (var t in this.GetTypesDerivedFrom<object>())
-            {
-                foreach (var property in t.GetProperties(ALL_PROPERTIES))
-                {
-                    if (property.GetCustomAttribute(attributeType) == null)
-                    {
-                        continue;
-                    }
+            const BindingFlags AllProperties = BindingFlags.Public
+                                               | BindingFlags.Instance
+                                               | BindingFlags.NonPublic
+                                               | BindingFlags.Static;
 
-                    yield return property;
-                }
+            foreach (var t in this.GetTypesDerivedFrom<object>())
+            foreach (var property in t.GetProperties(AllProperties))
+            {
+                if (property.GetCustomAttribute(attributeType) == null) continue;
+
+                yield return property;
             }
         }
 
@@ -58,8 +51,6 @@ namespace BeardPhantom.RuntimeTypeCache
         {
             return TypeCache.GetFieldsWithAttribute(attributeType);
         }
-
-        #endregion
     }
 }
 #endif

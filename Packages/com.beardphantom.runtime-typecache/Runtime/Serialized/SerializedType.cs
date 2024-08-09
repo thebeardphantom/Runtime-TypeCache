@@ -1,22 +1,16 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace BeardPhantom.RuntimeTypeCache.Serialized
 {
     /// <summary>
-    /// Represents in serializable form a reflectable Type.
+    ///     Represents in serializable form a reflectable Type.
     /// </summary>
     [Serializable]
     internal class SerializedType : ISerializableMemberInfo<Type>
     {
-        #region Properties
-
-        [field: SerializeField]
-        public int TypeStoreIndex { get; private set; }
-
-        #endregion
-
-        #region Methods
+        [field: SerializeField] public int TypeStoreIndex { get; private set; }
 
         /// <inheritdoc />
         public void Serialize(Type memberInfo, TypeStore typeStore)
@@ -29,9 +23,8 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
         public Type Deserialize(TypeStore typeStore)
         {
             var type = typeStore[TypeStoreIndex];
+            Assert.IsNotNull(type, "type != null");
             return type;
         }
-
-        #endregion
     }
 }

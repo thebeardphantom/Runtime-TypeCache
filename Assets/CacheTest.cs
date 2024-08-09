@@ -32,7 +32,7 @@ public class CacheTest : MonoBehaviour
             Debug.Log($"{field} has attribute {typeof(SomeAttributeAttribute)}");
         }
 
-        var propertiesWithAttribute = GlobalTypeCache.GetPropertysWithAttribute<SomeAttributeAttribute>();
+        var propertiesWithAttribute = GlobalTypeCache.GetPropertiesWithAttribute<SomeAttributeAttribute>();
         foreach (var property in propertiesWithAttribute)
         {
             Debug.Log($"{property} has attribute {typeof(SomeAttributeAttribute)}");

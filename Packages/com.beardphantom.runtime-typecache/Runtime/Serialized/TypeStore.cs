@@ -2,28 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace BeardPhantom.RuntimeTypeCache.Serialized
 {
     [Serializable]
     public class TypeStore : ISerializationCallbackReceiver
     {
-        #region Fields
+        [field: SerializeField] private List<string> SerializedTypeAqns { get; set; } = new();
 
         private readonly Dictionary<Type, int> _typeToIndex = new();
 
         private readonly List<Type> _deserializedTypes = new();
-
-        #endregion
-
-        #region Properties
-
-        [field: SerializeField]
-        private List<string> SerializedTypeAqns { get; set; } = new();
-
-        #endregion
-
-        #region Methods
 
         public Type this[int index] => _deserializedTypes[index];
 
@@ -50,11 +40,15 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
         /// <inheritdoc />
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-            var types = SerializedTypeAqns.Select(Type.GetType);
+            var types = SerializedTypeAqns.Select(
+                s =>
+                {
+                    var type = Type.GetType(s);
+                    Assert.IsNotNull(type, "type != null");
+                    return type;
+                });
             _deserializedTypes.Clear();
             _deserializedTypes.AddRange(types);
         }
-
-        #endregion
     }
 }

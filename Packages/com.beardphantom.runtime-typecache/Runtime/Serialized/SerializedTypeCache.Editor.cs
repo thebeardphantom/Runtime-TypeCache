@@ -11,13 +11,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
 {
     internal partial class SerializedTypeCache
     {
-        #region Fields
-
-        private static HashSet<string> _playerAssemblies;
-
-        #endregion
-
-        #region Methods
+        private static HashSet<string> s_playerAssemblies;
 
         private static bool HasFlag(AttributeTargets flag, AttributeTargets value)
         {
@@ -26,7 +20,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
 
         private static bool IsInEditorAssembly(Type type)
         {
-            _playerAssemblies ??= CompilationPipeline.GetAssemblies(AssembliesType.PlayerWithoutTestAssemblies)
+            s_playerAssemblies ??= CompilationPipeline.GetAssemblies(AssembliesType.PlayerWithoutTestAssemblies)
                 .Select(a => a.name)
                 .Concat(
                     CompilationPipeline
@@ -44,8 +38,8 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
                 .Distinct()
                 .ToHashSet();
 
-            return !_playerAssemblies.Contains(type.Assembly.GetName().Name)
-                || type.FullName.StartsWith("UnityEditorInternal");
+            return !s_playerAssemblies.Contains(type.Assembly.GetName().Name)
+                   || type.FullName.StartsWith("UnityEditorInternal");
         }
 
         internal void Regenerate()
@@ -73,29 +67,17 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
              * AND
              * 3. They pass the predicate filter.
              */
-            foreach (var type in targetTypes)
-            {
-                CacheAttributeUsage(type, typeCacheSource);
-            }
+            foreach (var type in targetTypes) CacheAttributeUsage(type, typeCacheSource);
 
-            if (TypeCacheBuilderUtility.StrictMode)
-            {
-                return;
-            }
+            if (TypeCacheBuilderUtility.StrictMode) return;
 
             var attributeTypes = TypeCache.GetTypesDerivedFrom<Attribute>();
             foreach (var type in attributeTypes)
             {
-                if (IsInEditorAssembly(type))
-                {
-                    continue;
-                }
+                if (IsInEditorAssembly(type)) continue;
 
                 var passesPredicate = TypeCacheBuilderUtility.ShouldCacheAttributeTypePredicate(type);
-                if (!passesPredicate)
-                {
-                    continue;
-                }
+                if (!passesPredicate) continue;
 
                 CacheAttributeUsage(type, typeCacheSource);
             }
@@ -107,13 +89,14 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
             var serializedAttributeType = new SerializedType().Build(attributeType, TypeStore);
 
             // Check for Types with attribute
-            if (HasFlag(attributeUsage.ValidOn, AttributeTargets.Class)
-                || HasFlag(attributeUsage.ValidOn, AttributeTargets.Struct))
+            if (HasFlag(attributeUsage.ValidOn, AttributeTargets.Class) ||
+                HasFlag(attributeUsage.ValidOn, AttributeTargets.Struct))
             {
                 var matches = typeCacheSource.GetTypesWithAttribute(attributeType).Where(t => !IsInEditorAssembly(t));
                 if (matches.Any())
                 {
-                    var matchesSerialized = matches.Select(memberInfo => new SerializedType().Build(memberInfo, TypeStore))
+                    var matchesSerialized = matches
+                        .Select(memberInfo => new SerializedType().Build(memberInfo, TypeStore))
                         .ToList();
                     TypesWithAttribute.Add(
                         new MemberInfoWithAttribute<SerializedType>
@@ -131,7 +114,8 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
                     .Where(memberInfo => !IsInEditorAssembly(memberInfo.DeclaringType));
                 if (matches.Any())
                 {
-                    var matchesSerialized = matches.Select(memberInfo => new SerializedMethod().Build(memberInfo, TypeStore))
+                    var matchesSerialized = matches
+                        .Select(memberInfo => new SerializedMethod().Build(memberInfo, TypeStore))
                         .ToList();
                     MethodsWithAttribute.Add(
                         new MemberInfoWithAttribute<SerializedMethod>
@@ -149,7 +133,8 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
                     .Where(memberInfo => !IsInEditorAssembly(memberInfo.DeclaringType));
                 if (matches.Any())
                 {
-                    var matchesSerialized = matches.Select(memberInfo => new SerializedProperty().Build(memberInfo, TypeStore))
+                    var matchesSerialized = matches
+                        .Select(memberInfo => new SerializedProperty().Build(memberInfo, TypeStore))
                         .ToList();
                     PropertiesWithAttribute.Add(
                         new MemberInfoWithAttribute<SerializedProperty>
@@ -167,7 +152,8 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
                     .Where(memberInfo => !IsInEditorAssembly(memberInfo.DeclaringType));
                 if (matches.Any())
                 {
-                    var matchesSerialized = matches.Select(memberInfo => new SerializedField().Build(memberInfo, TypeStore))
+                    var matchesSerialized = matches
+                        .Select(memberInfo => new SerializedField().Build(memberInfo, TypeStore))
                         .ToList();
                     FieldsWithAttribute.Add(
                         new MemberInfoWithAttribute<SerializedField>
@@ -188,29 +174,17 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
              * AND
              * 3. They pass the predicate filter.
              */
-            foreach (var typeCachedType in targetTypes)
-            {
-                CacheTypeInheritance(typeCachedType, typeCacheSource);
-            }
+            foreach (var typeCachedType in targetTypes) CacheTypeInheritance(typeCachedType, typeCacheSource);
 
-            if (TypeCacheBuilderUtility.StrictMode)
-            {
-                return;
-            }
+            if (TypeCacheBuilderUtility.StrictMode) return;
 
             var allTypes = typeCacheSource.GetTypesDerivedFrom<object>();
             foreach (var type in allTypes)
             {
-                if (IsInEditorAssembly(type))
-                {
-                    continue;
-                }
+                if (IsInEditorAssembly(type)) continue;
 
                 var passesPredicate = TypeCacheBuilderUtility.ShouldCacheTypeInheritance(type);
-                if (!passesPredicate)
-                {
-                    continue;
-                }
+                if (!passesPredicate) continue;
 
                 CacheTypeInheritance(type, typeCacheSource);
             }
@@ -219,10 +193,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
         private void CacheTypeInheritance(Type type, ITypeCacheSource typeCacheSource)
         {
             var derived = typeCacheSource.GetTypesDerivedFrom(type).Where(t => !IsInEditorAssembly(t));
-            if (!derived.Any())
-            {
-                return;
-            }
+            if (!derived.Any()) return;
 
             var derivedSerialized = derived.Select(t => new SerializedType().Build(t, TypeStore)).ToList();
             var parentType = new SerializedType();
@@ -234,8 +205,6 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
                     DerivedTypes = derivedSerialized
                 });
         }
-
-        #endregion
     }
 }
 #endif

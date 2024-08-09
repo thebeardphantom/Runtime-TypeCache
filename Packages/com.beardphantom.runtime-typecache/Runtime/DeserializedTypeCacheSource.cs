@@ -1,33 +1,23 @@
-﻿using JetBrains.Annotations;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using JetBrains.Annotations;
 
 namespace BeardPhantom.RuntimeTypeCache
 {
     /// <summary>
-    /// ITypeCacheSource that uses a <see cref="DeserializedTypeCache" /> instance.
+    ///     ITypeCacheSource that uses a <see cref="DeserializedTypeCache" /> instance.
     /// </summary>
     [UsedImplicitly]
     internal class DeserializedTypeCacheSource : ITypeCacheSource
     {
-        #region Fields
-
         private readonly DeserializedTypeCache _deserializedTypeCache;
-
-        #endregion
-
-        #region Constructors
 
         public DeserializedTypeCacheSource(DeserializedTypeCache deserializedTypeCache)
         {
             _deserializedTypeCache = deserializedTypeCache;
         }
-
-        #endregion
-
-        #region Methods
 
         private static IEnumerable<T> GetOrEmpty<T>(IReadOnlyDictionary<Type, T[]> dictionary, Type key)
         {
@@ -63,7 +53,5 @@ namespace BeardPhantom.RuntimeTypeCache
         {
             return GetOrEmpty(_deserializedTypeCache.FieldsWithAttribute, attributeType);
         }
-
-        #endregion
     }
 }

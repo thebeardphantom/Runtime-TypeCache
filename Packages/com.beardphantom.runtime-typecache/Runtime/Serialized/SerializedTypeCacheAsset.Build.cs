@@ -5,9 +5,23 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
 {
     internal partial class SerializedTypeCacheAsset
     {
+        #region Fields
+
+        private static SerializedTypeCacheAsset _instance;
+
+        #endregion
+
         #region Properties
 
-        internal static SerializedTypeCacheAsset Instance { get; private set; }
+        internal static SerializedTypeCacheAsset Instance
+        {
+            get
+            {
+                Assert.IsNotNull(_instance, "_instance != null");
+                return _instance;
+            }
+            private set => _instance = value;
+        }
 
         #endregion
 
@@ -15,7 +29,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
 
         private void Awake()
         {
-            Assert.IsNull(Instance, "Instance == null");
+            Assert.IsNull(_instance, "_instance == null");
             Instance = this;
         }
 

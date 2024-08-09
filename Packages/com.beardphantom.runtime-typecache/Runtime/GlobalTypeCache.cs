@@ -1,124 +1,108 @@
-﻿#if UNITY_EDITOR
-#define EDITOR
-#endif
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-#if !EDITOR
+#if !UNITY_EDITOR
 using BeardPhantom.RuntimeTypeCache.Serialized;
 #endif
 
 namespace BeardPhantom.RuntimeTypeCache
 {
     /// <summary>
-    /// The entry-point API for making queries.
+    ///     The entry-point API for making queries.
     /// </summary>
     public static class GlobalTypeCache
     {
-        #region Fields
-
-        private static readonly ITypeCacheSource _source;
-
-        #endregion
-
-        #region Constructors
+        private static readonly ITypeCacheSource Source;
 
         static GlobalTypeCache()
         {
-#if EDITOR
-            _source = new EditorTypeCacheSource();
+#if UNITY_EDITOR
+            Source = new EditorTypeCacheSource();
 #else
-            var serializedTypeCacheAsset = SerializedTypeCacheAsset.Instance;
+            var serializedTypeCacheAsset = SerializedTypeCacheAsset.GetInstance();
             var deserializedTypeCache = new DeserializedTypeCache(serializedTypeCacheAsset.SerializedTypeCache);
-            _source = new DeserializedTypeCacheSource(deserializedTypeCache);
+            Source = new DeserializedTypeCacheSource(deserializedTypeCache);
 #endif
         }
 
-        #endregion
-
-        #region Methods
-
         /// <summary>
-        /// Retrieves types derived from parent type <typeparamref name="T" />.
+        ///     Retrieves types derived from parent type <typeparamref name="T" />.
         /// </summary>
         public static IEnumerable<Type> GetTypesDerivedFrom<T>()
         {
-            return _source.GetTypesDerivedFrom<T>();
+            return Source.GetTypesDerivedFrom<T>();
         }
 
         /// <summary>
-        /// Retrieves types derived from <paramref name="parentType" />.
+        ///     Retrieves types derived from <paramref name="parentType" />.
         /// </summary>
         public static IEnumerable<Type> GetTypesDerivedFrom(Type parentType)
         {
-            return _source.GetTypesDerivedFrom(parentType);
+            return Source.GetTypesDerivedFrom(parentType);
         }
 
         /// <summary>
-        /// Retrieves types decorated with the attribute of type <typeparamref name="T" />.
+        ///     Retrieves types decorated with the attribute of type <typeparamref name="T" />.
         /// </summary>
         public static IEnumerable<Type> GetTypesWithAttribute<T>()
         {
-            return _source.GetTypesWithAttribute<T>();
+            return Source.GetTypesWithAttribute<T>();
         }
 
         /// <summary>
-        /// Retrieves types decorated with the attribute of type <paramref name="attributeType" />.
+        ///     Retrieves types decorated with the attribute of type <paramref name="attributeType" />.
         /// </summary>
         public static IEnumerable<Type> GetTypesWithAttribute(Type attributeType)
         {
-            return _source.GetTypesWithAttribute(attributeType);
+            return Source.GetTypesWithAttribute(attributeType);
         }
 
         /// <summary>
-        /// Retrieves methods decorated with the attribute of type <typeparamref name="T" />.
+        ///     Retrieves methods decorated with the attribute of type <typeparamref name="T" />.
         /// </summary>
         public static IEnumerable<MethodInfo> GetMethodsWithAttribute<T>()
         {
-            return _source.GetMethodsWithAttribute<T>();
+            return Source.GetMethodsWithAttribute<T>();
         }
 
         /// <summary>
-        /// Retrieves methods decorated with the attribute of type <paramref name="attributeType" />.
+        ///     Retrieves methods decorated with the attribute of type <paramref name="attributeType" />.
         /// </summary>
         public static IEnumerable<MethodInfo> GetMethodsWithAttribute(Type attributeType)
         {
-            return _source.GetMethodsWithAttribute(attributeType);
+            return Source.GetMethodsWithAttribute(attributeType);
         }
 
         /// <summary>
-        /// Retrieves properties decorated with the attribute of type <typeparamref name="T" />.
+        ///     Retrieves properties decorated with the attribute of type <typeparamref name="T" />.
         /// </summary>
-        public static IEnumerable<PropertyInfo> GetPropertysWithAttribute<T>()
+        public static IEnumerable<PropertyInfo> GetPropertiesWithAttribute<T>()
         {
-            return _source.GetPropertiesWithAttribute<T>();
+            return Source.GetPropertiesWithAttribute<T>();
         }
 
         /// <summary>
-        /// Retrieves properties decorated with the attribute of type <paramref name="attributeType" />.
+        ///     Retrieves properties decorated with the attribute of type <paramref name="attributeType" />.
         /// </summary>
-        public static IEnumerable<PropertyInfo> GetPropertysWithAttribute(Type attributeType)
+        public static IEnumerable<PropertyInfo> GetPropertiesWithAttribute(Type attributeType)
         {
-            return _source.GetPropertiesWithAttribute(attributeType);
+            return Source.GetPropertiesWithAttribute(attributeType);
         }
 
         /// <summary>
-        /// Retrieves fields decorated with the attribute of type <typeparamref name="T" />.
+        ///     Retrieves fields decorated with the attribute of type <typeparamref name="T" />.
         /// </summary>
         public static IEnumerable<FieldInfo> GetFieldsWithAttribute<T>()
         {
-            return _source.GetFieldsWithAttribute<T>();
+            return Source.GetFieldsWithAttribute<T>();
         }
 
         /// <summary>
-        /// Retrieves fields decorated with the attribute of type <paramref name="attributeType" />.
+        ///     Retrieves fields decorated with the attribute of type <paramref name="attributeType" />.
         /// </summary>
         public static IEnumerable<FieldInfo> GetFieldsWithAttribute(Type attributeType)
         {
-            return _source.GetFieldsWithAttribute(attributeType);
+            return Source.GetFieldsWithAttribute(attributeType);
         }
-
-        #endregion
     }
 }
