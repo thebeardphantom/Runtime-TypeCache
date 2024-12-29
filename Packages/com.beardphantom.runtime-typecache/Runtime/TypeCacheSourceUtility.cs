@@ -7,7 +7,7 @@ namespace BeardPhantom.RuntimeTypeCache
     internal static class TypeCacheSourceUtility
     {
         /// <summary>
-        ///     Retrieves types derived from parent type <typeparamref name="T" />.
+        /// Retrieves types derived from parent type <typeparamref name="T" />.
         /// </summary>
         public static IEnumerable<Type> GetTypesDerivedFrom<T>(this ITypeCacheSource typeCacheSource)
         {
@@ -15,7 +15,7 @@ namespace BeardPhantom.RuntimeTypeCache
         }
 
         /// <summary>
-        ///     Retrieves types decorated with the attribute of type <typeparamref name="T" />.
+        /// Retrieves types decorated with the attribute of type <typeparamref name="T" />.
         /// </summary>
         public static IEnumerable<Type> GetTypesWithAttribute<T>(this ITypeCacheSource typeCacheSource)
         {
@@ -23,7 +23,7 @@ namespace BeardPhantom.RuntimeTypeCache
         }
 
         /// <summary>
-        ///     Retrieves methods decorated with the attribute of type <typeparamref name="T" />.
+        /// Retrieves methods decorated with the attribute of type <typeparamref name="T" />.
         /// </summary>
         public static IEnumerable<MethodInfo> GetMethodsWithAttribute<T>(this ITypeCacheSource typeCacheSource)
         {
@@ -31,7 +31,7 @@ namespace BeardPhantom.RuntimeTypeCache
         }
 
         /// <summary>
-        ///     Retrieves properties decorated with the attribute of type <typeparamref name="T" />.
+        /// Retrieves properties decorated with the attribute of type <typeparamref name="T" />.
         /// </summary>
         public static IEnumerable<PropertyInfo> GetPropertiesWithAttribute<T>(this ITypeCacheSource typeCacheSource)
         {
@@ -39,7 +39,7 @@ namespace BeardPhantom.RuntimeTypeCache
         }
 
         /// <summary>
-        ///     Retrieves fields decorated with the attribute of type <typeparamref name="T" />.
+        /// Retrieves fields decorated with the attribute of type <typeparamref name="T" />.
         /// </summary>
         public static IEnumerable<FieldInfo> GetFieldsWithAttribute<T>(this ITypeCacheSource typeCacheSource)
         {

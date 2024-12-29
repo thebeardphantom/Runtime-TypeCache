@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using BeardPhantom.RuntimeTypeCache.Serialized;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -13,46 +14,46 @@ using Object = UnityEngine.Object;
 namespace BeardPhantom.RuntimeTypeCache.Editor
 {
     /// <summary>
-    ///     Responsible for creating the <see cref="SerializedTypeCacheAsset" /> at build time.
+    /// Responsible for creating the <see cref="SerializedTypeCacheAsset" /> at build time.
     /// </summary>
     internal class SerializedTypeCacheBuilder : IPreprocessBuildWithReport, IPostprocessBuildWithReport
     {
-        /// <inheritdoc />
-        int IOrderedCallback.callbackOrder { get; }
-
         /// <summary>
-        ///     The name of which the debug copies of the SerializedTypeCacheAsset will be created.
+        /// The name of which the debug copies of the SerializedTypeCacheAsset will be created.
         /// </summary>
         private const string ADBName = "SerializedTypeCache";
 
         /// <summary>
-        ///     The path at which the transitory SerializedTypeCacheAsset will be created.
+        /// The path at which the transitory SerializedTypeCacheAsset will be created.
         /// </summary>
         private const string ADBPath = "Assets/" + ADBName + "SerializedTypeCache.asset";
 
         /// <summary>
-        ///     The name of which the debug copies of the SerializedTypeCacheAsset will be created.
+        /// The name of which the debug copies of the SerializedTypeCacheAsset will be created.
         /// </summary>
         private const string TempName = "SerializedTypeCacheCopy";
 
         /// <summary>
-        ///     The path at which the debug copy of the SerializedTypeCacheAsset will be created.
+        /// The path at which the debug copy of the SerializedTypeCacheAsset will be created.
         /// </summary>
         private const string TempPath = "Temp/" + TempName + ".asset";
 
         /// <summary>
-        ///     The path at which the debug json copy of the SerializedTypeCacheAsset will be created.
+        /// The path at which the debug json copy of the SerializedTypeCacheAsset will be created.
         /// </summary>
         private const string TempPathJson = "Temp/" + TempName + ".json";
 
+        /// <inheritdoc />
+        int IOrderedCallback.callbackOrder { get; }
+
         /// <summary>
-        ///     Cleans up after the <see cref="OnPreprocessBuild" /> function.
+        /// Cleans up after the <see cref="OnPreprocessBuild" /> function.
         /// </summary>
         private static void DeleteAndRemoveAsset()
         {
             AssetDatabase.DeleteAsset(ADBPath);
 
-            var preloadedAssets = PlayerSettings.GetPreloadedAssets().ToList();
+            List<Object> preloadedAssets = PlayerSettings.GetPreloadedAssets().ToList();
             preloadedAssets.RemoveAll(obj => obj == null || obj is SerializedTypeCacheAsset);
             PlayerSettings.SetPreloadedAssets(preloadedAssets.ToArray());
         }
@@ -60,8 +61,11 @@ namespace BeardPhantom.RuntimeTypeCache.Editor
         /// <inheritdoc />
         void IPreprocessBuildWithReport.OnPreprocessBuild(BuildReport report)
         {
+            bool wasIncludingTestAssemblies = TypeCacheBuilderUtility.IncludeTestAssemblies;
             try
             {
+                TypeCacheBuilderUtility.IncludeTestAssemblies = (report.summary.options & BuildOptions.IncludeTestAssemblies) != 0;
+
                 // Generate type cache asset
                 var asset = ScriptableObject.CreateInstance<SerializedTypeCacheAsset>();
                 asset.SerializedTypeCache.Regenerate();
@@ -71,13 +75,13 @@ namespace BeardPhantom.RuntimeTypeCache.Editor
                 InternalEditorUtility.SaveToSerializedFileAndForget(
                     new Object[]
                     {
-                        asset
+                        asset,
                     },
                     TempPath,
                     true);
 
                 // Serialize to json for debug inspection
-                var json = JsonUtility.ToJson(asset, true);
+                string json = JsonUtility.ToJson(asset, true);
                 json = Regex.Replace(json, "(<|>|k__BackingField)", "");
                 File.WriteAllText(TempPathJson, json);
 
@@ -85,7 +89,7 @@ namespace BeardPhantom.RuntimeTypeCache.Editor
                 asset.name = ADBName;
                 AssetDatabase.CreateAsset(asset, ADBPath);
 
-                var preloadedAssets = PlayerSettings.GetPreloadedAssets().ToList();
+                List<Object> preloadedAssets = PlayerSettings.GetPreloadedAssets().ToList();
 
                 preloadedAssets.Add(asset);
                 preloadedAssets.RemoveAll(a => a == null);
@@ -96,6 +100,10 @@ namespace BeardPhantom.RuntimeTypeCache.Editor
             {
                 DeleteAndRemoveAsset();
                 throw;
+            }
+            finally
+            {
+                TypeCacheBuilderUtility.IncludeTestAssemblies = wasIncludingTestAssemblies;
             }
         }
 

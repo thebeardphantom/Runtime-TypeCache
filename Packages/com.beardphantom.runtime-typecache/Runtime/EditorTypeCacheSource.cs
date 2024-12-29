@@ -7,7 +7,7 @@ using UnityEditor;
 namespace BeardPhantom.RuntimeTypeCache
 {
     /// <summary>
-    ///     ITypeCacheSource that uses the standard <see cref="UnityEditor.TypeCache" /> API.
+    /// ITypeCacheSource that uses the standard <see cref="UnityEditor.TypeCache" /> API.
     /// </summary>
     internal class EditorTypeCacheSource : ITypeCacheSource
     {
@@ -35,14 +35,20 @@ namespace BeardPhantom.RuntimeTypeCache
             const BindingFlags AllProperties = BindingFlags.Public
                                                | BindingFlags.Instance
                                                | BindingFlags.NonPublic
-                                               | BindingFlags.Static;
+                                               | BindingFlags.Static
+                                               | BindingFlags.DeclaredOnly;
 
-            foreach (var t in this.GetTypesDerivedFrom<object>())
-            foreach (var property in t.GetProperties(AllProperties))
+            foreach (Type t in this.GetTypesDerivedFrom<object>())
             {
-                if (property.GetCustomAttribute(attributeType) == null) continue;
+                foreach (PropertyInfo property in t.GetProperties(AllProperties))
+                {
+                    if (property.GetCustomAttribute(attributeType) == null)
+                    {
+                        continue;
+                    }
 
-                yield return property;
+                    yield return property;
+                }
             }
         }
 

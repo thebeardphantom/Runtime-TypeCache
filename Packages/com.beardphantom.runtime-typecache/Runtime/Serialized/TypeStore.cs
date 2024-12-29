@@ -9,17 +9,18 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
     [Serializable]
     public class TypeStore : ISerializationCallbackReceiver
     {
-        [field: SerializeField] private List<string> SerializedTypeAqns { get; set; } = new();
-
         private readonly Dictionary<Type, int> _typeToIndex = new();
 
         private readonly List<Type> _deserializedTypes = new();
+
+        [field: SerializeField]
+        private List<string> SerializedTypeAqns { get; set; } = new();
 
         public Type this[int index] => _deserializedTypes[index];
 
         public int AddOrGet(Type type)
         {
-            if (!_typeToIndex.TryGetValue(type, out var index))
+            if (!_typeToIndex.TryGetValue(type, out int index))
             {
                 index = _deserializedTypes.Count;
                 _typeToIndex[type] = index;
@@ -32,7 +33,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
         /// <inheritdoc />
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
-            var typeAqns = _deserializedTypes.Select(t => t.AssemblyQualifiedName);
+            IEnumerable<string> typeAqns = _deserializedTypes.Select(t => t.AssemblyQualifiedName);
             SerializedTypeAqns.Clear();
             SerializedTypeAqns.AddRange(typeAqns);
         }
@@ -40,7 +41,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
         /// <inheritdoc />
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-            var types = SerializedTypeAqns.Select(
+            IEnumerable<Type> types = SerializedTypeAqns.Select(
                 s =>
                 {
                     var type = Type.GetType(s);

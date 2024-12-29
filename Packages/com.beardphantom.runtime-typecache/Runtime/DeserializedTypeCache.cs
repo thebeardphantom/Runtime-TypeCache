@@ -9,13 +9,24 @@ using UnityEngine.Assertions;
 namespace BeardPhantom.RuntimeTypeCache
 {
     /// <summary>
-    ///     Stores reflected data from a <see cref="SerializedTypeCache" /> instance.
+    /// Stores reflected data from a <see cref="SerializedTypeCache" /> instance.
     /// </summary>
     [UsedImplicitly]
     internal class DeserializedTypeCache
     {
+        internal readonly Dictionary<Type, IEnumerable<Type>> TypesWithAttribute;
+
+        internal readonly Dictionary<Type, IEnumerable<Type>> TypesDerivedFromType;
+
+        internal readonly Dictionary<Type, IEnumerable<MethodInfo>> MethodsWithAttribute;
+
+        internal readonly Dictionary<Type, IEnumerable<PropertyInfo>> PropertiesWithAttribute;
+
+        internal readonly Dictionary<Type, IEnumerable<FieldInfo>> FieldsWithAttribute;
+
         public DeserializedTypeCache(SerializedTypeCache serializedTypeCache)
         {
+            TypesDerivedFromType = GetTypesDerivedFromType(serializedTypeCache);
             TypesWithAttribute = MapFromSerialized<SerializedType, Type>(
                 serializedTypeCache,
                 serializedTypeCache.TypesWithAttribute);
@@ -30,18 +41,20 @@ namespace BeardPhantom.RuntimeTypeCache
                 serializedTypeCache.FieldsWithAttribute);
         }
 
-        private static Dictionary<Type, T2[]> MapFromSerialized<T1, T2>(
+        private static Dictionary<Type, IEnumerable<TDeserialized>> MapFromSerialized<TSerialized, TDeserialized>(
             SerializedTypeCache serializedTypeCache,
-            List<MemberInfoWithAttribute<T1>> serializedForms)
-            where T1 : ISerializableMemberInfo<T2> where T2 : MemberInfo
+            List<MemberInfoWithAttribute<TSerialized>> serializedForms)
+            where TSerialized : ISerializableMemberInfo<TDeserialized> where TDeserialized : MemberInfo
         {
-            var lookup = new Dictionary<Type, T2[]>();
-            foreach (var serializedForm in serializedForms)
+            var lookup = new Dictionary<Type, IEnumerable<TDeserialized>>();
+            foreach (MemberInfoWithAttribute<TSerialized> serializedForm in serializedForms)
             {
-                var members = serializedForm.Matches.Select(m => m.Deserialize(serializedTypeCache.TypeStore))
+                TDeserialized[] members = serializedForm
+                    .Matches
+                    .Select(m => m.Deserialize(serializedTypeCache.TypeStore))
                     .Where(m => m != null)
                     .ToArray();
-                var attributeType = serializedForm.AttributeType.Deserialize(serializedTypeCache.TypeStore);
+                Type attributeType = serializedForm.AttributeType.Deserialize(serializedTypeCache.TypeStore);
                 Assert.IsNotNull(attributeType, "attributeType != null");
                 lookup.Add(attributeType, members);
             }
@@ -49,12 +62,20 @@ namespace BeardPhantom.RuntimeTypeCache
             return lookup;
         }
 
-        internal readonly Dictionary<Type, Type[]> TypesWithAttribute;
+        private Dictionary<Type, IEnumerable<Type>> GetTypesDerivedFromType(SerializedTypeCache serializedTypeCache)
+        {
+            var lookup = new Dictionary<Type, IEnumerable<Type>>();
+            foreach (TypesDerivedFromType serializedForm in serializedTypeCache.TypesDerivedFromType)
+            {
+                Type parentType = serializedForm.ParentType.Deserialize(serializedTypeCache.TypeStore);
+                Type[] derivedTypes = serializedForm
+                    .DerivedTypes
+                    .Select(dt => dt.Deserialize(serializedTypeCache.TypeStore))
+                    .ToArray();
+                lookup.Add(parentType, derivedTypes);
+            }
 
-        internal readonly Dictionary<Type, MethodInfo[]> MethodsWithAttribute;
-
-        internal readonly Dictionary<Type, PropertyInfo[]> PropertiesWithAttribute;
-
-        internal readonly Dictionary<Type, FieldInfo[]> FieldsWithAttribute;
+            return lookup;
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// #undef UNITY_EDITOR
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 #if !UNITY_EDITOR
@@ -8,7 +10,7 @@ using BeardPhantom.RuntimeTypeCache.Serialized;
 namespace BeardPhantom.RuntimeTypeCache
 {
     /// <summary>
-    ///     The entry-point API for making queries.
+    /// The entry-point API for making queries.
     /// </summary>
     public static class GlobalTypeCache
     {
@@ -26,7 +28,7 @@ namespace BeardPhantom.RuntimeTypeCache
         }
 
         /// <summary>
-        ///     Retrieves types derived from parent type <typeparamref name="T" />.
+        /// Retrieves types derived from parent type <typeparamref name="T" />.
         /// </summary>
         public static IEnumerable<Type> GetTypesDerivedFrom<T>()
         {
@@ -34,7 +36,7 @@ namespace BeardPhantom.RuntimeTypeCache
         }
 
         /// <summary>
-        ///     Retrieves types derived from <paramref name="parentType" />.
+        /// Retrieves types derived from <paramref name="parentType" />.
         /// </summary>
         public static IEnumerable<Type> GetTypesDerivedFrom(Type parentType)
         {
@@ -42,7 +44,7 @@ namespace BeardPhantom.RuntimeTypeCache
         }
 
         /// <summary>
-        ///     Retrieves types decorated with the attribute of type <typeparamref name="T" />.
+        /// Retrieves types decorated with the attribute of type <typeparamref name="T" />.
         /// </summary>
         public static IEnumerable<Type> GetTypesWithAttribute<T>()
         {
@@ -50,7 +52,7 @@ namespace BeardPhantom.RuntimeTypeCache
         }
 
         /// <summary>
-        ///     Retrieves types decorated with the attribute of type <paramref name="attributeType" />.
+        /// Retrieves types decorated with the attribute of type <paramref name="attributeType" />.
         /// </summary>
         public static IEnumerable<Type> GetTypesWithAttribute(Type attributeType)
         {
@@ -58,7 +60,7 @@ namespace BeardPhantom.RuntimeTypeCache
         }
 
         /// <summary>
-        ///     Retrieves methods decorated with the attribute of type <typeparamref name="T" />.
+        /// Retrieves methods decorated with the attribute of type <typeparamref name="T" />.
         /// </summary>
         public static IEnumerable<MethodInfo> GetMethodsWithAttribute<T>()
         {
@@ -66,7 +68,7 @@ namespace BeardPhantom.RuntimeTypeCache
         }
 
         /// <summary>
-        ///     Retrieves methods decorated with the attribute of type <paramref name="attributeType" />.
+        /// Retrieves methods decorated with the attribute of type <paramref name="attributeType" />.
         /// </summary>
         public static IEnumerable<MethodInfo> GetMethodsWithAttribute(Type attributeType)
         {
@@ -74,7 +76,7 @@ namespace BeardPhantom.RuntimeTypeCache
         }
 
         /// <summary>
-        ///     Retrieves properties decorated with the attribute of type <typeparamref name="T" />.
+        /// Retrieves properties decorated with the attribute of type <typeparamref name="T" />.
         /// </summary>
         public static IEnumerable<PropertyInfo> GetPropertiesWithAttribute<T>()
         {
@@ -82,7 +84,7 @@ namespace BeardPhantom.RuntimeTypeCache
         }
 
         /// <summary>
-        ///     Retrieves properties decorated with the attribute of type <paramref name="attributeType" />.
+        /// Retrieves properties decorated with the attribute of type <paramref name="attributeType" />.
         /// </summary>
         public static IEnumerable<PropertyInfo> GetPropertiesWithAttribute(Type attributeType)
         {
@@ -90,7 +92,7 @@ namespace BeardPhantom.RuntimeTypeCache
         }
 
         /// <summary>
-        ///     Retrieves fields decorated with the attribute of type <typeparamref name="T" />.
+        /// Retrieves fields decorated with the attribute of type <typeparamref name="T" />.
         /// </summary>
         public static IEnumerable<FieldInfo> GetFieldsWithAttribute<T>()
         {
@@ -98,7 +100,7 @@ namespace BeardPhantom.RuntimeTypeCache
         }
 
         /// <summary>
-        ///     Retrieves fields decorated with the attribute of type <paramref name="attributeType" />.
+        /// Retrieves fields decorated with the attribute of type <paramref name="attributeType" />.
         /// </summary>
         public static IEnumerable<FieldInfo> GetFieldsWithAttribute(Type attributeType)
         {

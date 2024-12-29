@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 namespace BeardPhantom.RuntimeTypeCache
 {
     /// <summary>
-    ///     ITypeCacheSource that uses a <see cref="DeserializedTypeCache" /> instance.
+    /// ITypeCacheSource that uses a <see cref="DeserializedTypeCache" /> instance.
     /// </summary>
     [UsedImplicitly]
     internal class DeserializedTypeCacheSource : ITypeCacheSource
@@ -19,15 +19,15 @@ namespace BeardPhantom.RuntimeTypeCache
             _deserializedTypeCache = deserializedTypeCache;
         }
 
-        private static IEnumerable<T> GetOrEmpty<T>(IReadOnlyDictionary<Type, T[]> dictionary, Type key)
+        private static IEnumerable<T> GetOrEmpty<T>(IReadOnlyDictionary<Type, IEnumerable<T>> dictionary, Type key)
         {
-            return dictionary.TryGetValue(key, out var value) ? value : Enumerable.Empty<T>();
+            return dictionary.TryGetValue(key, out IEnumerable<T> value) ? value : Enumerable.Empty<T>();
         }
 
         /// <inheritdoc />
         public IEnumerable<Type> GetTypesDerivedFrom(Type parentType)
         {
-            return GetOrEmpty(_deserializedTypeCache.TypesWithAttribute, parentType);
+            return GetOrEmpty(_deserializedTypeCache.TypesDerivedFromType, parentType);
         }
 
         /// <inheritdoc />
@@ -45,7 +45,7 @@ namespace BeardPhantom.RuntimeTypeCache
         /// <inheritdoc />
         public IEnumerable<PropertyInfo> GetPropertiesWithAttribute(Type attributeType)
         {
-            throw new NotImplementedException();
+            return GetOrEmpty(_deserializedTypeCache.PropertiesWithAttribute, attributeType);
         }
 
         /// <inheritdoc />

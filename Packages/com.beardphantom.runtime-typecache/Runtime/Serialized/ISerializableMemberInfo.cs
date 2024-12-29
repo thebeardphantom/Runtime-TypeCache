@@ -2,12 +2,10 @@
 
 namespace BeardPhantom.RuntimeTypeCache.Serialized
 {
-    internal interface ISerializableMemberInfo
-    {
-    }
+    internal interface ISerializableMemberInfo { }
 
     /// <summary>
-    ///     Represents an object that can be converted from a MemberInfo to a serializable form, and back again.
+    /// Represents an object that can be converted from a MemberInfo to a serializable form, and back again.
     /// </summary>
     internal interface ISerializableMemberInfo<T> : ISerializableMemberInfo where T : MemberInfo
     {

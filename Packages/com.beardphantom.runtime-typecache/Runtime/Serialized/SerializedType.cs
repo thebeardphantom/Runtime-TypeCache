@@ -5,12 +5,13 @@ using UnityEngine.Assertions;
 namespace BeardPhantom.RuntimeTypeCache.Serialized
 {
     /// <summary>
-    ///     Represents in serializable form a reflectable Type.
+    /// Represents in serializable form a reflectable Type.
     /// </summary>
     [Serializable]
     internal class SerializedType : ISerializableMemberInfo<Type>
     {
-        [field: SerializeField] public int TypeStoreIndex { get; private set; }
+        [field: SerializeField]
+        public int TypeStoreIndex { get; private set; }
 
         /// <inheritdoc />
         public void Serialize(Type memberInfo, TypeStore typeStore)
@@ -22,7 +23,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
         /// <inheritdoc />
         public Type Deserialize(TypeStore typeStore)
         {
-            var type = typeStore[TypeStoreIndex];
+            Type type = typeStore[TypeStoreIndex];
             Assert.IsNotNull(type, "type != null");
             return type;
         }
