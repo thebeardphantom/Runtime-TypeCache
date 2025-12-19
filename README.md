@@ -1,3 +1,5 @@
+[![openupm](https://img.shields.io/npm/v/com.beardphantom.runtime-typecache?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.beardphantom.runtime-typecache/)
+[![openupm](https://img.shields.io/badge/dynamic/json?color=brightgreen&label=downloads&query=%24.downloads&suffix=%2Fmonth&url=https%3A%2F%2Fpackage.openupm.com%2Fdownloads%2Fpoint%2Flast-month%2Fcom.beardphantom.runtime-typecache)](https://openupm.com/packages/com.beardphantom.runtime-typecache/)
 # Runtime TypeCache
 Extends Unity's UnityEditor.TypeCache class to support the editor and builds through a singular API.
 
