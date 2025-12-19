@@ -1,0 +1,1 @@
+﻿public interface ITestInterfaceRecursive1 : ITestInterface<ITestInterface<int>> { }

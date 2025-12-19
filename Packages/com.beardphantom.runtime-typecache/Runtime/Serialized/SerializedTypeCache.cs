@@ -81,14 +81,15 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
 
             Type[] targetTypesAll = TypeCache.GetTypesWithAttribute<TypeCacheTargetAttribute>().ToArray();
             Type[] targetTypesAttributes = targetTypesAll.Where(typeof(Attribute).IsAssignableFrom).ToArray();
-            var typeCacheSource = new EditorTypeCacheSource();
-            CacheAllAttributeUsages(targetTypesAttributes, typeCacheSource);
+
+            var context = new CacheContext(new EditorTypeCacheSource());
+            CacheAllAttributeUsages(targetTypesAttributes, context);
 
             Type[] targetTypesNonAttributes = targetTypesAll.Except(targetTypesAttributes).ToArray();
-            CacheAllTypeInheritances(targetTypesNonAttributes, typeCacheSource);
+            CacheAllTypeInheritances(targetTypesNonAttributes, context);
         }
 
-        private void CacheAllAttributeUsages(IEnumerable<Type> targetTypes, ITypeCacheSource typeCacheSource)
+        private void CacheAllAttributeUsages(IEnumerable<Type> targetTypes, CacheContext context)
         {
             /*
              * Only cache attributes that are decorated with the TypeCachedAttribute attribute, OR if:
@@ -99,7 +100,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
              */
             foreach (Type type in targetTypes)
             {
-                CacheAttributeUsage(type, typeCacheSource);
+                CacheAttributeUsage(type, context);
             }
 
             if (TypeCacheBuilderUtility.StrictMode)
@@ -121,11 +122,11 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
                     continue;
                 }
 
-                CacheAttributeUsage(type, typeCacheSource);
+                CacheAttributeUsage(type, context);
             }
         }
 
-        private void CacheAttributeUsage(Type attributeType, ITypeCacheSource typeCacheSource)
+        private void CacheAttributeUsage(Type attributeType, CacheContext context)
         {
             var attributeUsage = attributeType.GetCustomAttribute<AttributeUsageAttribute>();
             SerializedType serializedAttributeType = new SerializedType().Build(attributeType, TypeStore);
@@ -133,7 +134,10 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
             // Check for Types with attribute
             if (HasFlag(attributeUsage.ValidOn, AttributeTargets.Class) || HasFlag(attributeUsage.ValidOn, AttributeTargets.Struct))
             {
-                IEnumerable<Type> matches = typeCacheSource.GetTypesWithAttribute(attributeType).Where(t => !IsInEditorAssembly(t));
+                IEnumerable<Type> matches = context
+                    .TypeCacheSource
+                    .GetTypesWithAttribute(attributeType)
+                    .Where(t => !IsInEditorAssembly(t));
                 if (matches.Any())
                 {
                     List<SerializedType> matchesSerialized = matches
@@ -151,7 +155,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
             // Check for Methods with attribute
             if (HasFlag(attributeUsage.ValidOn, AttributeTargets.Method))
             {
-                IEnumerable<MethodInfo> matches = typeCacheSource.GetMethodsWithAttribute(attributeType)
+                IEnumerable<MethodInfo> matches = context.TypeCacheSource.GetMethodsWithAttribute(attributeType)
                     .Where(memberInfo => !IsInEditorAssembly(memberInfo.DeclaringType));
                 if (matches.Any())
                 {
@@ -170,7 +174,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
             // Check for Fields with attribute
             if (HasFlag(attributeUsage.ValidOn, AttributeTargets.Property))
             {
-                IEnumerable<PropertyInfo> matches = typeCacheSource.GetPropertiesWithAttribute(attributeType)
+                IEnumerable<PropertyInfo> matches = context.TypeCacheSource.GetPropertiesWithAttribute(attributeType)
                     .Where(memberInfo => !IsInEditorAssembly(memberInfo.DeclaringType));
                 if (matches.Any())
                 {
@@ -189,7 +193,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
             // Check for Fields with attribute
             if (HasFlag(attributeUsage.ValidOn, AttributeTargets.Field))
             {
-                IEnumerable<FieldInfo> matches = typeCacheSource.GetFieldsWithAttribute(attributeType)
+                IEnumerable<FieldInfo> matches = context.TypeCacheSource.GetFieldsWithAttribute(attributeType)
                     .Where(memberInfo => !IsInEditorAssembly(memberInfo.DeclaringType));
                 if (matches.Any())
                 {
@@ -206,7 +210,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
             }
         }
 
-        private void CacheAllTypeInheritances(IEnumerable<Type> targetTypes, ITypeCacheSource typeCacheSource)
+        private void CacheAllTypeInheritances(IEnumerable<Type> targetTypes, CacheContext context)
         {
             /*
              * Only cache types that are decorated with the TypeCachedType attribute, OR if:
@@ -217,7 +221,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
              */
             foreach (Type typeCachedType in targetTypes)
             {
-                CacheTypeInheritance(typeCachedType, typeCacheSource);
+                CacheTypeInheritance(typeCachedType, context);
             }
 
             if (TypeCacheBuilderUtility.StrictMode)
@@ -225,7 +229,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
                 return;
             }
 
-            IEnumerable<Type> allTypes = typeCacheSource.GetTypesDerivedFrom<object>();
+            IEnumerable<Type> allTypes = context.TypeCacheSource.GetTypesDerivedFrom<object>();
             foreach (Type type in allTypes)
             {
                 if (IsInEditorAssembly(type))
@@ -239,27 +243,60 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
                     continue;
                 }
 
-                CacheTypeInheritance(type, typeCacheSource);
+                CacheTypeInheritance(type, context);
             }
         }
 
-        private void CacheTypeInheritance(Type type, ITypeCacheSource typeCacheSource)
+        private void CacheTypeInheritance(Type parentType, CacheContext context)
         {
-            IEnumerable<Type> derived = typeCacheSource.GetTypesDerivedFrom(type).Where(t => !IsInEditorAssembly(t));
-            if (!derived.Any())
+            if (!context.TryVisit(parentType))
             {
                 return;
             }
 
-            List<SerializedType> derivedSerialized = derived.Select(t => new SerializedType().Build(t, TypeStore)).ToList();
-            var parentType = new SerializedType();
-            parentType.Serialize(type, TypeStore);
+            Type[] derivedTypes = context
+                .TypeCacheSource
+                .GetTypesDerivedFrom(parentType)
+                .Where(t => !IsInEditorAssembly(t))
+                .ToArray();
+            if (derivedTypes.Length == 0)
+            {
+                return;
+            }
+
+            List<SerializedType> serializedDerivedTypes = derivedTypes.Select(t => new SerializedType().Build(t, TypeStore)).ToList();
+            var serializedParentType = new SerializedType();
+            serializedParentType.Serialize(parentType, TypeStore);
             TypesDerivedFromType.Add(
                 new TypesDerivedFromType
                 {
-                    ParentType = parentType,
-                    DerivedTypes = derivedSerialized,
+                    ParentType = serializedParentType,
+                    DerivedTypes = serializedDerivedTypes,
                 });
+
+            if (!parentType.IsGenericTypeDefinition)
+            {
+                return;
+            }
+
+            foreach (Type derivedType in derivedTypes)
+            {
+                Type[] interfaces = derivedType.GetInterfaces();
+                foreach (Type interfaceType in interfaces)
+                {
+                    if (!interfaceType.IsGenericType)
+                    {
+                        continue;
+                    }
+
+                    if (interfaceType.GetGenericTypeDefinition() != parentType)
+                    {
+                        continue;
+                    }
+
+                    CacheTypeInheritance(interfaceType, context);
+                }
+            }
         }
     }
 #endif
