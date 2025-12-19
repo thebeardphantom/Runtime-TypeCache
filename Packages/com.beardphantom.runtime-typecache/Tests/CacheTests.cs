@@ -14,6 +14,20 @@ public class CacheTests
     }
 
     [Test]
+    public void GetTypesDerivedFromInterface()
+    {
+        Type[] types = GlobalTypeCache.GetTypesDerivedFrom<ITestInterface<int>>().ToArray();
+        Assert.AreEqual(1, types.Length);
+    }
+
+    [Test]
+    public void GetTypesDerivedFromInterfaceCurious()
+    {
+        Type[] types = GlobalTypeCache.GetTypesDerivedFrom<ITestInterface<TestTypeFromInterfaceCurious>>().ToArray();
+        Assert.AreEqual(1, types.Length);
+    }
+
+    [Test]
     public void GetTypesWithAttribute()
     {
         Type[] types = GlobalTypeCache.GetTypesWithAttribute<SomeAttributeAttribute>().ToArray();
