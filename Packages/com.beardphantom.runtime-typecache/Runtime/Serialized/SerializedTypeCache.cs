@@ -243,23 +243,47 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
             }
         }
 
-        private void CacheTypeInheritance(Type type, ITypeCacheSource typeCacheSource)
+        private void CacheTypeInheritance(Type parentType, ITypeCacheSource typeCacheSource)
         {
-            IEnumerable<Type> derived = typeCacheSource.GetTypesDerivedFrom(type).Where(t => !IsInEditorAssembly(t));
-            if (!derived.Any())
+            Type[] derivedTypes = typeCacheSource.GetTypesDerivedFrom(parentType).Where(t => !IsInEditorAssembly(t)).ToArray();
+            if (derivedTypes.Length == 0)
             {
                 return;
             }
 
-            List<SerializedType> derivedSerialized = derived.Select(t => new SerializedType().Build(t, TypeStore)).ToList();
-            var parentType = new SerializedType();
-            parentType.Serialize(type, TypeStore);
+            List<SerializedType> serializedDerivedTypes = derivedTypes.Select(t => new SerializedType().Build(t, TypeStore)).ToList();
+            var serializedParentType = new SerializedType();
+            serializedParentType.Serialize(parentType, TypeStore);
             TypesDerivedFromType.Add(
                 new TypesDerivedFromType
                 {
-                    ParentType = parentType,
-                    DerivedTypes = derivedSerialized,
+                    ParentType = serializedParentType,
+                    DerivedTypes = serializedDerivedTypes,
                 });
+
+            if (!parentType.IsGenericTypeDefinition)
+            {
+                return;
+            }
+
+            foreach (Type derivedType in derivedTypes)
+            {
+                Type[] interfaces = derivedType.GetInterfaces();
+                foreach (Type interfaceType in interfaces)
+                {
+                    if (!interfaceType.IsGenericType)
+                    {
+                        continue;
+                    }
+
+                    if (interfaceType.GetGenericTypeDefinition() != parentType)
+                    {
+                        continue;
+                    }
+
+                    CacheTypeInheritance(interfaceType, typeCacheSource);
+                }
+            }
         }
     }
 #endif
