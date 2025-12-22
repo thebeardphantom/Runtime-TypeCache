@@ -1,7 +1,7 @@
 {
   "displayName": "Runtime TypeCache",
   "name": "com.beardphantom.runtime-typecache",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "unity": "2022.3",
   "category": "Libraries"
 }
