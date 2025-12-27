@@ -14,7 +14,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
             TypeCacheSource = typeCacheSource;
         }
 
-        public bool TryVisit(Type type)
+        public bool TryVisitType(Type type)
         {
             return _visitedTypes.Add(type);
         }

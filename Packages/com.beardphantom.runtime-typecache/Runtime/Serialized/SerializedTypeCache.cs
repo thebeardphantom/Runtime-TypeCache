@@ -249,7 +249,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
 
         private void CacheTypeInheritance(Type parentType, CacheContext context)
         {
-            if (!context.TryVisit(parentType))
+            if (!context.TryVisitType(parentType))
             {
                 return;
             }
