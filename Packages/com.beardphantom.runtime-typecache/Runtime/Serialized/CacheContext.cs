@@ -14,6 +14,10 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
             TypeCacheSource = typeCacheSource;
         }
 
+        /// <summary>
+        /// If returns true then work needs to be done on this type. If false then work should be skipped as this type has been
+        /// processed before.
+        /// </summary>
         public bool TryVisitType(Type type)
         {
             return _visitedTypes.Add(type);

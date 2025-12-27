@@ -285,21 +285,29 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
 
             foreach (Type derivedType in derivedTypes)
             {
-                Type[] interfaces = derivedType.GetInterfaces();
+                Type[] interfaces = CollectInterfacesInTypeHierarchy(derivedType)
+                    .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == parentType)
+                    .Distinct()
+                    .ToArray();
                 foreach (Type interfaceType in interfaces)
                 {
-                    if (!interfaceType.IsGenericType)
-                    {
-                        continue;
-                    }
-
-                    if (interfaceType.GetGenericTypeDefinition() != parentType)
-                    {
-                        continue;
-                    }
-
                     CacheTypeInheritance(interfaceType, context);
                 }
+            }
+        }
+
+        private IEnumerable<Type> CollectInterfacesInTypeHierarchy(Type type)
+        {
+            Type currentType = type;
+            while (currentType != null)
+            {
+                Type[] interfaces = currentType.GetInterfaces();
+                foreach (Type @interface in interfaces)
+                {
+                    yield return @interface;
+                }
+
+                currentType = currentType.BaseType;
             }
         }
     }
