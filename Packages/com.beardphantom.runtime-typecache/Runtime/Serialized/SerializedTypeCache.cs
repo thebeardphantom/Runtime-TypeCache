@@ -134,15 +134,16 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
             // Check for Types with attribute
             if (HasFlag(attributeUsage.ValidOn, AttributeTargets.Class) || HasFlag(attributeUsage.ValidOn, AttributeTargets.Struct))
             {
-                IEnumerable<Type> matches = context
+                Type[] matches = context
                     .TypeCacheSource
                     .GetTypesWithAttribute(attributeType)
-                    .Where(t => !IsInEditorAssembly(t));
-                if (matches.Any())
+                    .Where(t => !IsInEditorAssembly(t))
+                    .ToArray();
+                if (matches.Length > 0)
                 {
-                    List<SerializedType> matchesSerialized = matches
+                    SerializedType[] matchesSerialized = matches
                         .Select(memberInfo => new SerializedType().Build(memberInfo, TypeStore))
-                        .ToList();
+                        .ToArray();
                     TypesWithAttribute.Add(
                         new MemberInfoWithAttribute<SerializedType>
                         {
@@ -155,13 +156,14 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
             // Check for Methods with attribute
             if (HasFlag(attributeUsage.ValidOn, AttributeTargets.Method))
             {
-                IEnumerable<MethodInfo> matches = context.TypeCacheSource.GetMethodsWithAttribute(attributeType)
-                    .Where(memberInfo => !IsInEditorAssembly(memberInfo.DeclaringType));
-                if (matches.Any())
+                MethodInfo[] matches = context.TypeCacheSource.GetMethodsWithAttribute(attributeType)
+                    .Where(memberInfo => !IsInEditorAssembly(memberInfo.DeclaringType))
+                    .ToArray();
+                if (matches.Length > 0)
                 {
-                    List<SerializedMethod> matchesSerialized = matches
+                    SerializedMethod[] matchesSerialized = matches
                         .Select(memberInfo => new SerializedMethod().Build(memberInfo, TypeStore))
-                        .ToList();
+                        .ToArray();
                     MethodsWithAttribute.Add(
                         new MemberInfoWithAttribute<SerializedMethod>
                         {
@@ -174,13 +176,14 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
             // Check for Fields with attribute
             if (HasFlag(attributeUsage.ValidOn, AttributeTargets.Property))
             {
-                IEnumerable<PropertyInfo> matches = context.TypeCacheSource.GetPropertiesWithAttribute(attributeType)
-                    .Where(memberInfo => !IsInEditorAssembly(memberInfo.DeclaringType));
-                if (matches.Any())
+                PropertyInfo[] matches = context.TypeCacheSource.GetPropertiesWithAttribute(attributeType)
+                    .Where(memberInfo => !IsInEditorAssembly(memberInfo.DeclaringType))
+                    .ToArray();
+                if (matches.Length > 0)
                 {
-                    List<SerializedProperty> matchesSerialized = matches
+                    SerializedProperty[] matchesSerialized = matches
                         .Select(memberInfo => new SerializedProperty().Build(memberInfo, TypeStore))
-                        .ToList();
+                        .ToArray();
                     PropertiesWithAttribute.Add(
                         new MemberInfoWithAttribute<SerializedProperty>
                         {
@@ -193,13 +196,14 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
             // Check for Fields with attribute
             if (HasFlag(attributeUsage.ValidOn, AttributeTargets.Field))
             {
-                IEnumerable<FieldInfo> matches = context.TypeCacheSource.GetFieldsWithAttribute(attributeType)
-                    .Where(memberInfo => !IsInEditorAssembly(memberInfo.DeclaringType));
-                if (matches.Any())
+                FieldInfo[] matches = context.TypeCacheSource.GetFieldsWithAttribute(attributeType)
+                    .Where(memberInfo => !IsInEditorAssembly(memberInfo.DeclaringType))
+                    .ToArray();
+                if (matches.Length > 0)
                 {
-                    List<SerializedField> matchesSerialized = matches
+                    SerializedField[] matchesSerialized = matches
                         .Select(memberInfo => new SerializedField().Build(memberInfo, TypeStore))
-                        .ToList();
+                        .ToArray();
                     FieldsWithAttribute.Add(
                         new MemberInfoWithAttribute<SerializedField>
                         {
@@ -249,7 +253,7 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
 
         private void CacheTypeInheritance(Type parentType, CacheContext context)
         {
-            if (!context.TryVisit(parentType))
+            if (!context.TryVisitType(parentType))
             {
                 return;
             }
@@ -281,21 +285,41 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
 
             foreach (Type derivedType in derivedTypes)
             {
-                Type[] interfaces = derivedType.GetInterfaces();
-                foreach (Type interfaceType in interfaces)
+                IEnumerable<Type> typesInHierarchy = parentType.IsInterface
+                    ? CollectInterfacesInTypeHierarchy(derivedType)
+                    : CollectTypeHierarchy(derivedType);
+                IEnumerable<Type> genericTypesInHierarchy = typesInHierarchy
+                    .Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == parentType)
+                    .Distinct();
+                foreach (Type inheritedGenericType in genericTypesInHierarchy)
                 {
-                    if (!interfaceType.IsGenericType)
-                    {
-                        continue;
-                    }
-
-                    if (interfaceType.GetGenericTypeDefinition() != parentType)
-                    {
-                        continue;
-                    }
-
-                    CacheTypeInheritance(interfaceType, context);
+                    CacheTypeInheritance(inheritedGenericType, context);
                 }
+            }
+        }
+
+        private IEnumerable<Type> CollectInterfacesInTypeHierarchy(Type type)
+        {
+            Type currentType = type;
+            while (currentType != null)
+            {
+                Type[] interfaces = currentType.GetInterfaces();
+                foreach (Type @interface in interfaces)
+                {
+                    yield return @interface;
+                }
+
+                currentType = currentType.BaseType;
+            }
+        }
+
+        private IEnumerable<Type> CollectTypeHierarchy(Type type)
+        {
+            Type currentType = type.BaseType;
+            while (currentType != null && currentType != typeof(object))
+            {
+                yield return currentType;
+                currentType = currentType.BaseType;
             }
         }
     }

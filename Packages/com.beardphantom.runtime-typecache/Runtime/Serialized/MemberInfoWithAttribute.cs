@@ -14,6 +14,6 @@ namespace BeardPhantom.RuntimeTypeCache.Serialized
         public SerializedType AttributeType { get; set; }
 
         [field: SerializeField]
-        public List<T> Matches { get; set; } = new();
+        public T[] Matches { get; set; } = Array.Empty<T>();
     }
 }
